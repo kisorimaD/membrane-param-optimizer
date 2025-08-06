@@ -83,7 +83,7 @@
 		  "--relax_verb" "3"
 		  "--nlin_sol"   "0.0" "0.0"  "50"   "1"
 	"}"
-"--skip_solution" "true"
+"--skip_solution" "false"
 "--solution_pipeline" 
 	"{"
 		  "--density" "1.0"
