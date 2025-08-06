@@ -32,8 +32,11 @@ def create_table(conn):
     CREATE TABLE IF NOT EXISTS results_raw_{settings['POTENTIAL_CHOICE']} (
         id INT AUTO_INCREMENT PRIMARY KEY,
         angle INT NOT NULL,
+        hcoapt DOUBLE NOT NULL,
+        hcentral DOUBLE NOT NULL,
         billowing DOUBLE NOT NULL,
         collide_area DOUBLE NOT NULL,
+        is_closed BOOLEAN NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255) DEFAULT 'unknown'
     ); '''
@@ -49,12 +52,12 @@ def create_table(conn):
 
 def insert_data(conn, data):
     sql = f''' 
-    INSERT INTO results_raw_{settings['POTENTIAL_CHOICE']}(angle, billowing, collide_area, created_by)
-    VALUES (%s, %s, %s, %s)
+    INSERT INTO results_raw_{settings['POTENTIAL_CHOICE']}(angle, hcoapt, hcentral, billowing, collide_area, is_closed, created_by)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
     '''
     try:
         cur = conn.cursor()
-        cur.execute(sql, (data['angle'], data['billowing'], data['collide_area'], data['created_by']))
+        cur.execute(sql, (data['angle'], data['hcoapt'], data['hcentral'], data['billowing'], data['collide_area'], data['is_closed'], data['created_by']))
         conn.commit()
         log_debug(f"Data inserted: {data}")
     except Error as e:

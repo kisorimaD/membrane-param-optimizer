@@ -45,18 +45,29 @@ def run_av_in_cilinder():
     return out
 
 
-def grep_lines(lines) -> tuple[float, float]:
+def grep_lines(lines) -> tuple[float, float, float, float, bool]:
+    hcoapt_str = lines[0].split("Hcoapt =")[1].split(",")[0].strip()
+    hcentral_str = lines[0].split("Hcentral =")[1].strip()
+
+    is_closed_str = lines[1].split("isClosed =")[1].strip()
+
     billowing_str = lines[-6].split("{")[1].split(",")[0].strip()
     collide_area_str = lines[-4].split("=")[1].split("(")[0].strip()
 
     try:
+        hcoapt = float(hcoapt_str)
+        hcentral = float(hcentral_str)
+        is_closed = is_closed_str.lower() == "true"
         billowing = float(billowing_str)
         collide_area = float(collide_area_str)
     except ValueError:
-        raise ValueError("Could not convert billowing or collide area to float\n billowing: {}, collide_area: {}".format(
-            billowing_str, collide_area_str))
+        raise ValueError(
+            f"Could not convert values to float/bool\n"
+            f"hcoapt: {hcoapt_str}, hcentral: {hcentral_str}, isClosed: {is_closed_str}, "
+            f"billowing: {billowing_str}, collide_area: {collide_area_str}"
+        )
 
-    return billowing, collide_area
+    return hcoapt, hcentral, billowing, collide_area, is_closed
 
 
 def round_angle(angle: float) -> int:
@@ -97,14 +108,17 @@ def analyse():
 
                     error_file.write("\n\n")
 
-            billowing, collide_area = grep_lines(lines[-6:])
+            hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(lines[-6:])
 
             results.append((angle, billowing, collide_area))
 
             data = {
                 'angle': round_angle(angle),
+                'hcoapt': hcoapt,
+                'hcentral': hcentral,
                 'billowing': billowing,
                 'collide_area': collide_area,
+                'is_closed': is_closed,
                 'created_by': settings['USERNAME']
             }
 
