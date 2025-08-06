@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 from logger import log_info, log_error, log_debug
+from settings import settings
 
 user_name = "damir"
 
@@ -27,8 +28,8 @@ def close_connection(conn):
         log_info("Connection to MySQL closed")
 
 def create_table(conn):
-    sql = ''' 
-    CREATE TABLE IF NOT EXISTS results_raw (
+    sql = f''' 
+    CREATE TABLE IF NOT EXISTS results_raw_{settings['POTENTIAL_CHOICE']} (
         id INT AUTO_INCREMENT PRIMARY KEY,
         angle INT NOT NULL,
         billowing DOUBLE NOT NULL,
@@ -47,8 +48,8 @@ def create_table(conn):
             cur.close()
 
 def insert_data(conn, data):
-    sql = ''' 
-    INSERT INTO results_raw(angle, billowing, collide_area, created_by)
+    sql = f''' 
+    INSERT INTO results_raw_{settings['POTENTIAL_CHOICE']}(angle, billowing, collide_area, created_by)
     VALUES (%s, %s, %s, %s)
     '''
     try:
@@ -63,7 +64,7 @@ def insert_data(conn, data):
             cur.close()
 
 def find_data(conn, angle) -> tuple:
-    sql = ''' SELECT * FROM results_raw WHERE angle = %s '''
+    sql = f''' SELECT * FROM results_raw_{settings['POTENTIAL_CHOICE']} WHERE angle = %s '''
     log_debug(f"Finding data for angle: {angle}")
     try:
         cur = conn.cursor(buffered=True)

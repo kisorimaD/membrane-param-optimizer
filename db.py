@@ -1,5 +1,6 @@
 import sqlite3
 from logger import log_info, log_error, log_debug
+from settings import settings
 
 user_name = "damir"
 
@@ -18,7 +19,7 @@ def close_connection(conn):
         log_info("Connection closed")
 
 def create_table(conn):
-    sql = ''' CREATE TABLE IF NOT EXISTS results_raw (
+    sql = f''' CREATE TABLE IF NOT EXISTS results_raw_{settings['POTENTIAL_CHOICE']} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 angle INTEGER NOT NULL,
                 billowing REAL NOT NULL,
