@@ -120,7 +120,7 @@ def process_angle(angle):
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
             output = run_av_in_cilinder(ozaki_template_name)
             lines = output.splitlines()
-            log_debug(f"Output lines: {lines[-12:]}")
+            log_debug(f"Output lines: {lines[-30:]}")
             if lines and lines[-1].startswith("ERROR"):
                 log_error(f"Error in calculation for angle {angle} radians")
                 with open("error_log.txt", "a") as error_file:
@@ -146,8 +146,8 @@ def process_angle(angle):
 
 
 def analyse():
-    angle_num = 20
-    angles = np.linspace(np.pi / 7, np.pi / 2, angle_num)
+    angle_num = 16
+    angles = np.linspace(np.pi / 4, np.pi / 2, angle_num)
     with ProcessPoolExecutor() as executor:
         futures = [executor.submit(process_angle, angle) for angle in angles]
         for f in tqdm(as_completed(futures), total=len(futures)):

@@ -19,18 +19,20 @@ def generate_angle_mesh(angle: float):
     log_debug(f"Mesh generated with fiber angle: {angle} radians")
 
 
-def transform_parameters():
+def transform_parameters(angle: float):
     with open("parameters.txt", "r") as f:
         lines = f.readlines()
 
         return ' '.join(lines) \
             .replace('<SCHOOL25_PATH>', settings['SCHOOL25_PATH']) \
-            .replace('<POTENTIAL_CHOICE>', str(settings['POTENTIAL_CHOICE'])).strip() \
+            .replace('<POTENTIAL_CHOICE>', str(settings['POTENTIAL_CHOICE'])) \
+            .replace('<FIBER_ANGLE>', str(round_angle(angle))).strip() \
+            .replace("<POTENTIAL_CHOICE>", str(settings['POTENTIAL_CHOICE'])) \
             .replace("\n", " ")
 
 
-def run_av_in_cilinder():
-    transform_args = transform_parameters()
+def run_av_in_cilinder(angle):
+    transform_args = transform_parameters(angle)
     # log_debug(f"Transform args: {transform_args}")
 
     av_proc = subprocess.Popen(
@@ -76,7 +78,7 @@ def round_angle(angle: float) -> int:
 def analyse():
     angle_num = 20
 
-    angles = np.linspace(np.pi / 7, np.pi / 2, angle_num)
+    angles = np.linspace(0, np.pi / 4, angle_num)
 
     results = []
 
@@ -90,10 +92,10 @@ def analyse():
             generate_angle_mesh(angle)
 
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
-            output = run_av_in_cilinder()
+            output = run_av_in_cilinder(angle)
 
             lines = output.splitlines()
-            log_debug(f"Output lines: {lines[-12:]}")
+            log_debug(f"Output lines: {lines[-30:]}")
 
             if lines[-1].startswith("ERROR"):
                 log_error(f"Error in calculation for angle {angle} radians")
