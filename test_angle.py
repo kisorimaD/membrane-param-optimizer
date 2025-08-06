@@ -106,7 +106,7 @@ def analyse():
 
                     error_file.write("\n\n")
 
-            hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(lines[-6:])
+            hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(lines[-12:])
 
             results.append((angle, billowing, collide_area))
 

@@ -129,7 +129,7 @@ def process_angle(angle):
                     for line in lines:
                         error_file.write(line + "\n")
                     error_file.write("\n\n")
-            hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(lines[-6:])
+            hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(lines[-12:])
             data = {
                 'angle': round_angle(angle),
                 'hcoapt': hcoapt,
