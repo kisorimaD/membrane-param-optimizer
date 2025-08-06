@@ -1,0 +1,15 @@
+Var mu = 1.18,
+    c1 = 8.08,
+    c2 = 54.00, #80
+    c0 = 55.04;
+Fiber f:"f:fiber_s";
+
+Let I3d_1 = I[1] + 1/I[2];
+
+Let first = mu * (I3d_1 - 3);
+
+Let good = ifelse( (c1*((I3d_1-3)^2) + c2*((I[f] - 1)^4)) > 10, exp(10) * (c1*((I3d_1-3)^2) + c2*((I[f] - 1)^4)), exp(c1*((I3d_1-3)^2) + c2*((I[f] - 1)^4)) );
+
+Let second = c0 * (good - 1);
+
+Potential = first + second;
