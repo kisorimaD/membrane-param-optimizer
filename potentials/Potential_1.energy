@@ -1,0 +1,11 @@
+Var C10 = 1.21,   # kPa
+    C01 = 7.99,
+    k1  = 24.23,  # kPa
+    k2  = 57.62;
+
+Let I3d_1 = I[1] + 1/I[2];
+
+Fiber f:"f:fiber_f";
+
+Potential = C10 * (exp(C01 * (I3d_1 - 3)) - 1) + (k1 / (2 * k2)) * (ifelse(k2 * (I[f] - 1)^2 > 10, exp(10) * (k2 * (I[f] - 1)^2), exp(k2 * (I[f] - 1)^2)) - 1);
+# Potential = C10 * (exp(C01 * (I3d_1 - 3)) - 1) + (k1 / (2 * k2)) * (exp(k2 * (I[f] - 1)^2) - 1);

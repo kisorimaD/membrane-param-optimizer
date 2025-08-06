@@ -1,7 +1,6 @@
 /.venv
 /__pycache__
 /data
-/generate_ozaki_template.py
 /graphs
 /insert.py
 /parameters_mp.txt
@@ -9,3 +8,4 @@
 /results.db
 /results_combined.db
 /test_angle_mp.py
+config.ini

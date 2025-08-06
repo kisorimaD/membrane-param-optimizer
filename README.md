@@ -24,5 +24,21 @@ mkdir -p result
 ### Запуск
 
 ```bash
-python main.py
+python test_angle.py
 ```
+
+#### Ошибки
+
+Если возникают ошибки с gmsh типо
+```
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libXcursor.so.1: cannot open shared object file: No such file or directory
+```
+
+то установите недостающие библиотеки:
+```bash
+apt install libxrender1 libx11-6 libxext6 libxcursor1 libxft2 libxfixes3 libxi6 libglu1-mesa libxinerama1
+```
+ 

@@ -10,7 +10,7 @@ conn = create_connection()
 
 def generate_angle_mesh(angle: float):
     subprocess.run(
-        ["python3", settings['SCHOOL25_PATH'] + "/generate_ozaki_template.py",
+        ["python3", "generate_ozaki_template.py",
             "--fiber_angle", str(angle)],
         check=True,
         stdout=subprocess.PIPE,
