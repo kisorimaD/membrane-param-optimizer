@@ -46,11 +46,10 @@ def run_av_in_cilinder():
 
 
 def grep_lines(lines) -> tuple[float, float, float, float, bool]:
-    hcoapt_str = lines[0].split("Hcoapt =")[1].split(",")[0].strip()
-    hcentral_str = lines[0].split("Hcentral =")[1].strip()
 
-    is_closed_str = lines[1].split("isClosed =")[1].strip()
-
+    hcoapt_str = lines[-10].split("Hcoapt =")[1].split(",")[0].strip()
+    hcentral_str = lines[-10].split("Hcentral =")[1].strip()
+    is_closed_str = lines[-9].split("isClosed =")[1].strip()
     billowing_str = lines[-6].split("{")[1].split(",")[0].strip()
     collide_area_str = lines[-4].split("=")[1].split("(")[0].strip()
 
@@ -68,7 +67,6 @@ def grep_lines(lines) -> tuple[float, float, float, float, bool]:
         )
 
     return hcoapt, hcentral, billowing, collide_area, is_closed
-
 
 def round_angle(angle: float) -> int:
     # угол хранится в целых градусах * 10
@@ -95,7 +93,7 @@ def analyse():
             output = run_av_in_cilinder()
 
             lines = output.splitlines()
-            log_debug(f"Output lines: {lines[-6:]}")
+            log_debug(f"Output lines: {lines[-12:]}")
 
             if lines[-1].startswith("ERROR"):
                 log_error(f"Error in calculation for angle {angle} radians")

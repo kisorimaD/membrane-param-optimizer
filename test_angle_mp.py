@@ -77,11 +77,9 @@ def run_av_in_cilinder(ozaki_template_name: str):
 
 
 def grep_lines(lines) -> tuple[float, float, float, float, bool]:
-    hcoapt_str = lines[0].split("Hcoapt =")[1].split(",")[0].strip()
-    hcentral_str = lines[0].split("Hcentral =")[1].strip()
-
-    is_closed_str = lines[1].split("isClosed =")[1].strip()
-
+    hcoapt_str = lines[-11].split("Hcoapt =")[1].split(",")[0].strip()
+    hcentral_str = lines[-11].split("Hcentral =")[1].strip()
+    is_closed_str = lines[-10].split("isClosed =")[1].strip()
     billowing_str = lines[-6].split("{")[1].split(",")[0].strip()
     collide_area_str = lines[-4].split("=")[1].split("(")[0].strip()
 
@@ -99,7 +97,6 @@ def grep_lines(lines) -> tuple[float, float, float, float, bool]:
         )
 
     return hcoapt, hcentral, billowing, collide_area, is_closed
-
 
 def round_angle(angle: float) -> int:
     # угол хранится в целых градусах * 10
@@ -123,7 +120,7 @@ def process_angle(angle):
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
             output = run_av_in_cilinder(ozaki_template_name)
             lines = output.splitlines()
-            log_debug(f"Output lines: {lines[-6:]}")
+            log_debug(f"Output lines: {lines[-12:]}")
             if lines and lines[-1].startswith("ERROR"):
                 log_error(f"Error in calculation for angle {angle} radians")
                 with open("error_log.txt", "a") as error_file:
