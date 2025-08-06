@@ -1,0 +1,176 @@
+import subprocess
+import numpy as np
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+from logger import log_info, log_error, log_debug
+from db_online import create_connection, close_connection, create_table
+from settings import settings
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import random
+import os
+
+conn = create_connection()
+
+
+def gen_random_name():
+    return f"ozaki_template_{random.randint(1000, 9999)}.vtk"
+
+
+# def gen_random_core_name():
+#     return f"core_{random.randint(1000, 9999)}"
+
+
+def generate_angle_mesh(angle: float, ozaki_template_name: str):
+    subprocess.run(
+        ["python3", "generate_ozaki_template.py",
+         "--fiber_angle", str(angle),
+         "--output_dir", "/tmp/data",
+         "--output_file", ozaki_template_name],
+        check=True,
+        stdout=subprocess.PIPE,
+    )
+
+    log_debug(f"Mesh generated with fiber angle: {angle} radians")
+
+
+def transform_parameters(ozaki_template_name: str):
+    with open("parameters_mp.txt", "r") as f:
+        lines = f.readlines()
+
+        return ' '.join(lines) \
+            .replace('<SCHOOL25_PATH>', settings['SCHOOL25_PATH']) \
+            .replace('<OZAKI_TEMPLATE_NAME>', ozaki_template_name) \
+            .replace("\n", " ")
+
+
+def run_av_in_cilinder(ozaki_template_name: str):
+    transform_args = transform_parameters(ozaki_template_name)
+    # log_debug(f"Transform args: {transform_args}")
+
+    # core_name = gen_random_core_name()
+
+    # os.makedirs(f"/tmp/cores/{core_name}/bin", exist_ok=True)
+
+    # subprocess.run(
+    #     ["cp", settings['MEMBRANEMODEL_PATH'] + "/cmake-build-Release/benchmarks/IdealSuturedLeaf/av_in_cilinder",
+    #      f"/tmp/cores/{core_name}/bin/"],
+    #     check=True,
+    # )
+
+    av_proc = subprocess.Popen(
+        f"{settings['MEMBRANEMODEL_PATH']}/cmake-build-Release/benchmarks/IdealSuturedLeaf/av_in_cilinder {transform_args}",
+        shell=True,
+        stdout=subprocess.PIPE,
+        text=True
+    )
+
+    out, _ = av_proc.communicate()
+
+    # subprocess.run(
+    #     ["rm", "-rf", f"/tmp/cores/{core_name}"],
+    #     check=True
+    # )
+
+    return out
+
+
+def grep_lines(lines) -> tuple[float, float]:
+    billowing_str = lines[-6].split("{")[1].split(",")[0].strip()
+    collide_area_str = lines[-4].split("=")[1].split("(")[0].strip()
+
+    try:
+        billowing = float(billowing_str)
+        collide_area = float(collide_area_str)
+    except ValueError:
+        raise ValueError("Could not convert billowing or collide area to float\n billowing: {}, collide_area: {}".format(
+            billowing_str, collide_area_str))
+
+    return billowing, collide_area
+
+
+def round_angle(angle: float) -> int:
+    # угол хранится в целых градусах * 10
+    return int(np.round(angle * 1800 / np.pi))
+
+
+def process_angle(angle):
+    from db_online import create_connection, insert_data, find_data
+    from settings import settings
+    from logger import log_debug, log_error
+
+    ozaki_template_name = gen_random_name()
+
+    conn_local = create_connection()
+    try:
+        if precalc_data := find_data(conn_local, round_angle(angle)):
+            log_debug(f"Precalculated data found for angle: {angle} radians")
+            return precalc_data
+        else:
+            generate_angle_mesh(angle, ozaki_template_name)
+            log_debug(f"Running av_in_cilinder for angle: {angle} radians")
+            output = run_av_in_cilinder(ozaki_template_name)
+            lines = output.splitlines()
+            log_debug(f"Output lines: {lines[-6:]}")
+            if lines and lines[-1].startswith("ERROR"):
+                log_error(f"Error in calculation for angle {angle} radians")
+                with open("error_log.txt", "a") as error_file:
+                    error_file.write(
+                        f"===== Error for angle {angle} radians =====\n")
+                    for line in lines:
+                        error_file.write(line + "\n")
+                    error_file.write("\n\n")
+            billowing, collide_area = grep_lines(lines[-6:])
+            data = {
+                'angle': round_angle(angle),
+                'billowing': billowing,
+                'collide_area': collide_area,
+                'created_by': settings['USERNAME']
+            }
+            insert_data(conn_local, data)
+            return (angle, billowing, collide_area)
+    finally:
+        close_connection(conn_local)
+
+
+def analyse():
+    angle_num = 16
+    angles = np.linspace(np.pi/4, np.pi / 2, angle_num)
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(process_angle, angle) for angle in angles]
+        for f in tqdm(as_completed(futures), total=len(futures)):
+            try:
+                f.result()
+            except Exception as e:
+                log_error(f"Exception in process: {e}")
+
+
+def create_dirs():
+    import os
+    dirs = ["/tmp/data", "/tmp/cores"]
+    for d in dirs:
+        if not os.path.exists(d):
+            os.makedirs(d)
+            log_info(f"Created directory: {d}")
+        else:
+            log_info(f"Directory already exists: {d}")
+
+
+if __name__ == "__main__":
+    create_dirs()
+    create_table(conn)
+    log_info("Starting analysis")
+
+    try:
+        analyse()
+        log_info("Analysis completed successfully")
+    except Exception as e:
+        log_error(f"An error occurred during analysis: {e}")
+        raise e
+    finally:
+        close_connection(conn)
+        log_info("Database connection closed")
+        log_info("Script execution finished")
+
+        # clean up temporary files
+        subprocess.run(["rm", "-rf", "/tmp/data"], check=True)
+        subprocess.run(["rm", "-rf", "/tmp/cores"], check=True)

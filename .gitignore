@@ -3,9 +3,7 @@
 /data
 /graphs
 /insert.py
-/parameters_mp.txt
 /result
 /results.db
 /results_combined.db
-/test_angle_mp.py
-config.ini
+/config.ini
