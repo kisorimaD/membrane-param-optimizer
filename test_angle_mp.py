@@ -40,6 +40,7 @@ def transform_parameters(ozaki_template_name: str):
         return ' '.join(lines) \
             .replace('<SCHOOL25_PATH>', settings['SCHOOL25_PATH']) \
             .replace('<OZAKI_TEMPLATE_NAME>', ozaki_template_name) \
+            .replace('<POTENTIAL_CHOICE>', str(settings['POTENTIAL_CHOICE'])).strip() \
             .replace("\n", " ")
 
 
@@ -133,8 +134,8 @@ def process_angle(angle):
 
 
 def analyse():
-    angle_num = 16
-    angles = np.linspace(np.pi/4, np.pi / 2, angle_num)
+    angle_num = 20
+    angles = np.linspace(np.pi / 7, np.pi / 2, angle_num)
     with ProcessPoolExecutor() as executor:
         futures = [executor.submit(process_angle, angle) for angle in angles]
         for f in tqdm(as_completed(futures), total=len(futures)):

@@ -1,7 +1,7 @@
 "--cusp_meshes" "/tmp/data/<OZAKI_TEMPLATE_NAME>" "" ""
 "--suture_lines" "<SCHOOL25_PATH>/data/NCC.pp" "<SCHOOL25_PATH>/data/RCC.pp" "<SCHOOL25_PATH>/data/LCC.pp"
 "--cusp_names" "NCC" "RCC" "LCC"
-"--energy" "<SCHOOL25_PATH>/potentials/Potential_1.energy"
+"--energy" "<SCHOOL25_PATH>/potentials/Potential_<POTENTIAL_CHOICE>.energy"
 "--regen_expr" "false"
 "--target" "result/"
 "--use_bending" "false"

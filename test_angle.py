@@ -23,7 +23,10 @@ def transform_parameters():
     with open("parameters.txt", "r") as f:
         lines = f.readlines()
 
-        return ' '.join(lines).replace('<SCHOOL25_PATH>', settings['SCHOOL25_PATH']).replace("\n", " ")
+        return ' '.join(lines) \
+            .replace('<SCHOOL25_PATH>', settings['SCHOOL25_PATH']) \
+            .replace('<POTENTIAL_CHOICE>', str(settings['POTENTIAL_CHOICE'])).strip() \
+            .replace("\n", " ")
 
 
 def run_av_in_cilinder():
@@ -62,9 +65,9 @@ def round_angle(angle: float) -> int:
 
 
 def analyse():
-    angle_num = 10
+    angle_num = 20
 
-    angles = np.linspace(0, np.pi / 2, angle_num)
+    angles = np.linspace(np.pi / 7, np.pi / 2, angle_num)
 
     results = []
 
@@ -74,7 +77,7 @@ def analyse():
             log_debug(f"Precalculated data found for angle: {angle} radians")
             results.append(precalc_data)
         else:
-                
+
             generate_angle_mesh(angle)
 
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
@@ -86,11 +89,12 @@ def analyse():
             if lines[-1].startswith("ERROR"):
                 log_error(f"Error in calculation for angle {angle} radians")
                 with open("error_log.txt", "a") as error_file:
-                    error_file.write(f"===== Error for angle {angle} radians =====\n")
-                    
+                    error_file.write(
+                        f"===== Error for angle {angle} radians =====\n")
+
                     for line in lines:
                         error_file.write(line + "\n")
-                    
+
                     error_file.write("\n\n")
 
             billowing, collide_area = grep_lines(lines[-6:])
