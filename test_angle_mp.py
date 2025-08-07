@@ -33,7 +33,7 @@ def generate_angle_mesh(angle: float, ozaki_template_name: str):
     log_debug(f"Mesh generated with fiber angle: {angle} radians")
 
 
-def transform_parameters(ozaki_template_name: str):
+def transform_parameters(ozaki_template_name: str, angle: float):
     with open("parameters_mp.txt", "r") as f:
         lines = f.readlines()
 
@@ -41,22 +41,12 @@ def transform_parameters(ozaki_template_name: str):
             .replace('<SCHOOL25_PATH>', settings['SCHOOL25_PATH']) \
             .replace('<OZAKI_TEMPLATE_NAME>', ozaki_template_name) \
             .replace('<POTENTIAL_CHOICE>', str(settings['POTENTIAL_CHOICE'])).strip() \
+            .replace('<FIBER_ANGLE>', str(round_angle(angle))) \
             .replace("\n", " ")
 
 
-def run_av_in_cilinder(ozaki_template_name: str):
-    transform_args = transform_parameters(ozaki_template_name)
-    # log_debug(f"Transform args: {transform_args}")
-
-    # core_name = gen_random_core_name()
-
-    # os.makedirs(f"/tmp/cores/{core_name}/bin", exist_ok=True)
-
-    # subprocess.run(
-    #     ["cp", settings['MEMBRANEMODEL_PATH'] + "/cmake-build-Release/benchmarks/IdealSuturedLeaf/av_in_cilinder",
-    #      f"/tmp/cores/{core_name}/bin/"],
-    #     check=True,
-    # )
+def run_av_in_cilinder(ozaki_template_name: str, angle: float):
+    transform_args = transform_parameters(ozaki_template_name, angle)
 
     av_proc = subprocess.Popen(
         f"{settings['MEMBRANEMODEL_PATH']}/cmake-build-Release/benchmarks/IdealSuturedLeaf/av_in_cilinder {transform_args}",
@@ -67,19 +57,13 @@ def run_av_in_cilinder(ozaki_template_name: str):
 
     out, _ = av_proc.communicate()
 
-    # subprocess.run(
-    #     ["rm", "-rf", f"/tmp/cores/{core_name}"],
-    #     check=True
-    # )
-
     return out
 
 
-
 def grep_lines(lines) -> tuple[float, float, float, float, bool]:
-    hcoapt_str = lines[-11].split("Hcoapt =")[1].split(",")[0].strip()
-    hcentral_str = lines[-11].split("Hcentral =")[1].strip()
-    is_closed_str = lines[-10].split("isClosed =")[1].strip()
+    hcoapt_str = lines[-10].split("Hcoapt =")[1].split(",")[0].strip()
+    hcentral_str = lines[-10].split("Hcentral =")[1].strip()
+    is_closed_str = lines[-9].split("isClosed =")[1].strip()
     billowing_str = lines[-6].split("{")[1].split(",")[0].strip()
     collide_area_str = lines[-4].split("=")[1].split("(")[0].strip()
 
@@ -97,6 +81,7 @@ def grep_lines(lines) -> tuple[float, float, float, float, bool]:
         )
 
     return hcoapt, hcentral, billowing, collide_area, is_closed
+
 
 def round_angle(angle: float) -> int:
     # угол хранится в целых градусах * 10
@@ -118,7 +103,7 @@ def process_angle(angle):
         else:
             generate_angle_mesh(angle, ozaki_template_name)
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
-            output = run_av_in_cilinder(ozaki_template_name)
+            output = run_av_in_cilinder(ozaki_template_name, angle)
             lines = output.splitlines()
             log_debug(f"Output lines: {lines[-30:]}")
             if lines and lines[-1].startswith("ERROR"):
@@ -129,7 +114,9 @@ def process_angle(angle):
                     for line in lines:
                         error_file.write(line + "\n")
                     error_file.write("\n\n")
-            hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(lines[-12:])
+            hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(
+                lines[-12:])
+
             data = {
                 'angle': round_angle(angle),
                 'hcoapt': hcoapt,
@@ -146,9 +133,15 @@ def process_angle(angle):
 
 
 def analyse():
-    angle_num = 16
-    angles = np.linspace(np.pi / 4, np.pi / 2, angle_num)
-    with ProcessPoolExecutor() as executor:
+    angle_num = int(settings['ANGLE_NUM'])
+    angle_start = float(eval(settings['ANGLE_START'], {"PI": np.pi}))
+    angle_end = float(eval(settings['ANGLE_END'], {"PI": np.pi}))
+
+    log_info(
+        f"Angle start: {angle_start} radians, Angle end: {angle_end} radians, Angle num: {angle_num}")
+
+    angles = np.linspace(angle_start, angle_end, angle_num)
+    with ProcessPoolExecutor(max_workers=7) as executor:
         futures = [executor.submit(process_angle, angle) for angle in angles]
         for f in tqdm(as_completed(futures), total=len(futures)):
             try:

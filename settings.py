@@ -8,6 +8,8 @@ class Settings:
     def __getitem__(self, key):
         if key in self.config['DEFAULT']:
             return self.config['DEFAULT'][key]
+        elif key in self.config['DATA_CALCULATION']:
+            return self.config['DATA_CALCULATION'][key]
         raise KeyError(f"Setting '{key}' not found in configuration.")
 
 

@@ -76,9 +76,13 @@ def round_angle(angle: float) -> int:
 
 
 def analyse():
-    angle_num = 20
+    angle_num = int(settings['ANGLE_NUM'])
+    angle_start = float(eval(settings['ANGLE_START'], {"PI": np.pi}))
+    angle_end = float(eval(settings['ANGLE_END'], {"PI": np.pi}))
 
-    angles = np.linspace(0, np.pi / 4, angle_num)
+    log_info(f"Angle start: {angle_start} radians, Angle end: {angle_end} radians, Angle num: {angle_num}") 
+
+    angles = np.linspace(angle_start, angle_end, angle_num)
 
     results = []
 
