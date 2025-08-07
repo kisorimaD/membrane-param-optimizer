@@ -29,9 +29,10 @@ def close_connection(conn):
 
 def create_table(conn):
     sql = f''' 
-    CREATE TABLE IF NOT EXISTS results_raw_{settings['POTENTIAL_CHOICE']} (
+    CREATE TABLE IF NOT EXISTS results_raw_{settings['POTENTIAL_CHOICE']}_D (
         id INT AUTO_INCREMENT PRIMARY KEY,
         angle INT NOT NULL,
+        D INT NOT NULL,
         hcoapt DOUBLE NOT NULL,
         hcentral DOUBLE NOT NULL,
         billowing DOUBLE NOT NULL,
@@ -52,12 +53,12 @@ def create_table(conn):
 
 def insert_data(conn, data):
     sql = f''' 
-    INSERT INTO results_raw_{settings['POTENTIAL_CHOICE']}(angle, hcoapt, hcentral, billowing, collide_area, is_closed, created_by)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO results_raw_{settings['POTENTIAL_CHOICE']}_D(angle, D, hcoapt, hcentral, billowing, collide_area, is_closed, created_by)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     '''
     try:
         cur = conn.cursor()
-        cur.execute(sql, (data['angle'], data['hcoapt'], data['hcentral'], data['billowing'], data['collide_area'], data['is_closed'], data['created_by']))
+        cur.execute(sql, (data['angle'], data['D'], data['hcoapt'], data['hcentral'], data['billowing'], data['collide_area'], data['is_closed'], data['created_by']))
         conn.commit()
         log_debug(f"Data inserted: {data}")
     except Error as e:
@@ -66,12 +67,12 @@ def insert_data(conn, data):
         if cur:
             cur.close()
 
-def find_data(conn, angle) -> tuple:
-    sql = f''' SELECT * FROM results_raw_{settings['POTENTIAL_CHOICE']} WHERE angle = %s '''
-    log_debug(f"Finding data for angle: {angle}")
+def find_data(conn, angle, D) -> tuple:
+    sql = f''' SELECT * FROM results_raw_{settings['POTENTIAL_CHOICE']}_D WHERE angle = %s AND D = %s '''
+    log_debug(f"Finding data for angle: {angle}, D: {D}")
     try:
         cur = conn.cursor(buffered=True)
-        cur.execute(sql, (angle,))
+        cur.execute(sql, (angle, D))
         result = cur.fetchone()
         return result
     except Error as e:

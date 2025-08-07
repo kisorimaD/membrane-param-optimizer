@@ -8,8 +8,20 @@ import os
 
 import argparse
 
+
+# fiber_angle = math.pi / 10;        # угол наклона главного направления анизотропии
+parser = argparse.ArgumentParser(description="Generate Ozaki template mesh")
+parser.add_argument("--fiber_angle", type=float, default=math.pi / 10, help="Angle of the main fiber direction in radians")
+parser.add_argument("--template_size", type=float, default=25.0, help="Size of the template (D in mm)")
+
+parser.add_argument("--output_dir", type=str, default="data", help="Directory to save the output mesh file")
+parser.add_argument("--output_file", type=str, default="ozaki_template.vtk", help="Name of the output mesh file")
+
+args = parser.parse_args()
+
+
 # Параметры модели
-D = 25.0                           # [mm], размер шаблона (номер шаблона в терминологии Озаки)
+D = args.template_size                      # [mm], размер шаблона (номер шаблона в терминологии Озаки)
 h = 11.0 + math.erf( 2*(D-16.0) )  # [mm], высота дополнительного участка у свободного края
 beta = 2.5 + 0.5*math.erf( 2*(D-24.0) ) # [mm], подъём над центром дуги окружности
 alpha = 1.0                        # [mm], ширина "ушка" шаблона
@@ -20,13 +32,6 @@ w = 0.0                            # [mm], дополнительное удли
 dh = 1.0                           # [mm], рекомендуемый шаг сетки
 
 
-# fiber_angle = math.pi / 10;        # угол наклона главного направления анизотропии
-parser = argparse.ArgumentParser(description="Generate Ozaki template mesh")
-parser.add_argument("--fiber_angle", type=float, default=math.pi / 10, help="Angle of the main fiber direction in radians")
-parser.add_argument("--output_dir", type=str, default="data", help="Directory to save the output mesh file")
-parser.add_argument("--output_file", type=str, default="ozaki_template.vtk", help="Name of the output mesh file")
-
-args = parser.parse_args()
 fiber_angle = args.fiber_angle      # угол наклона главного направления анизотропии
 
 target_dir = args.output_dir        # целевая папка для сохранения результата

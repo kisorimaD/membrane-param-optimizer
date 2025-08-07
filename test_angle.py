@@ -8,10 +8,11 @@ from settings import settings
 conn = create_connection()
 
 
-def generate_angle_mesh(angle: float):
+def generate_angle_mesh(angle: float, D: int):
     subprocess.run(
         ["python3", "generate_ozaki_template.py",
-            "--fiber_angle", str(angle)],
+            "--fiber_angle", str(angle),
+            "--template_size", str(D)],
         check=True,
         stdout=subprocess.PIPE,
     )
@@ -28,6 +29,7 @@ def transform_parameters(angle: float):
             .replace('<POTENTIAL_CHOICE>', str(settings['POTENTIAL_CHOICE'])) \
             .replace('<FIBER_ANGLE>', str(round_angle(angle))).strip() \
             .replace("<POTENTIAL_CHOICE>", str(settings['POTENTIAL_CHOICE'])) \
+            .replace("<D>", str(settings['D'])) \
             .replace("\n", " ")
 
 
@@ -80,7 +82,9 @@ def analyse():
     angle_start = float(eval(settings['ANGLE_START'], {"PI": np.pi}))
     angle_end = float(eval(settings['ANGLE_END'], {"PI": np.pi}))
 
-    log_info(f"Angle start: {angle_start} radians, Angle end: {angle_end} radians, Angle num: {angle_num}") 
+    D = int(settings['D'])
+
+    log_info(f"Angle start: {angle_start} radians, Angle end: {angle_end} radians, Angle num: {angle_num}, D: {D}")
 
     angles = np.linspace(angle_start, angle_end, angle_num)
 
@@ -88,12 +92,12 @@ def analyse():
 
     for angle in tqdm(angles):
 
-        if precalc_data := find_data(conn, round_angle(angle)):
+        if precalc_data := find_data(conn, round_angle(angle), D):
             log_debug(f"Precalculated data found for angle: {angle} radians")
             results.append(precalc_data)
         else:
 
-            generate_angle_mesh(angle)
+            generate_angle_mesh(angle, D)
 
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
             output = run_av_in_cilinder(angle)
@@ -114,10 +118,9 @@ def analyse():
 
             hcoapt, hcentral, billowing, collide_area, is_closed = grep_lines(lines[-12:])
 
-            results.append((angle, billowing, collide_area))
-
             data = {
                 'angle': round_angle(angle),
+                'D': D,
                 'hcoapt': hcoapt,
                 'hcentral': hcentral,
                 'billowing': billowing,
