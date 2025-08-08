@@ -83,8 +83,6 @@ for filename in tqdm(os.listdir(directory)):
         print(f"  ❌ Ошибка при запуске на {filename}: {e}")
 
 
-user_name = "damir"
-
 MYSQL_CONFIG = {
     'host': '84.54.47.92',
     'user': 'user',
@@ -164,7 +162,7 @@ for key, value in result.items():
             'angle': a,
             'D': d,
             'heff': value,
-            'created_by': user_name
+            'created_by': settings['USERNAME']
         })
 
         print(f"Insert data for A{a}P{p}D{d}")
