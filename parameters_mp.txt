@@ -11,7 +11,7 @@
 "--use_spring_sutures" "true"   
 "--suture_fix_fbnd" "true"  
 "--suture_curvature" "0.0"
-"--name" "A_<FIBER_ANGLE>_P_<POTENTIAL_CHOICE>_"
+"--name" "A_<FIBER_ANGLE>_P_<POTENTIAL_CHOICE>_D_<D>_"
 "--suture_relax_bc" 
 	"{" 
 		  "--density" "0.0"

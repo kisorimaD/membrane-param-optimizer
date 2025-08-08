@@ -20,10 +20,11 @@ def gen_random_name():
 #     return f"core_{random.randint(1000, 9999)}"
 
 
-def generate_angle_mesh(angle: float, ozaki_template_name: str):
+def generate_angle_mesh(angle: float, D: int, ozaki_template_name: str):
     subprocess.run(
         ["python3", "generate_ozaki_template.py",
          "--fiber_angle", str(angle),
+         "--template_size", str(D),
          "--output_dir", "/tmp/data",
          "--output_file", ozaki_template_name],
         check=True,
@@ -42,6 +43,7 @@ def transform_parameters(ozaki_template_name: str, angle: float):
             .replace('<OZAKI_TEMPLATE_NAME>', ozaki_template_name) \
             .replace('<POTENTIAL_CHOICE>', str(settings['POTENTIAL_CHOICE'])).strip() \
             .replace('<FIBER_ANGLE>', str(round_angle(angle))) \
+            .replace('<D>', str(settings['D'])) \
             .replace("\n", " ")
 
 
@@ -88,7 +90,7 @@ def round_angle(angle: float) -> int:
     return int(np.round(angle * 1800 / np.pi))
 
 
-def process_angle(angle):
+def process_angle(angle, D: int):
     from db_online import create_connection, insert_data, find_data
     from settings import settings
     from logger import log_debug, log_error
@@ -97,11 +99,11 @@ def process_angle(angle):
 
     conn_local = create_connection()
     try:
-        if precalc_data := find_data(conn_local, round_angle(angle)):
+        if precalc_data := find_data(conn_local, round_angle(angle), D):
             log_debug(f"Precalculated data found for angle: {angle} radians")
             return precalc_data
         else:
-            generate_angle_mesh(angle, ozaki_template_name)
+            generate_angle_mesh(angle, D, ozaki_template_name)
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
             output = run_av_in_cilinder(ozaki_template_name, angle)
             lines = output.splitlines()
@@ -119,6 +121,7 @@ def process_angle(angle):
 
             data = {
                 'angle': round_angle(angle),
+                'D': D,
                 'hcoapt': hcoapt,
                 'hcentral': hcentral,
                 'billowing': billowing,
@@ -137,12 +140,15 @@ def analyse():
     angle_start = float(eval(settings['ANGLE_START'], {"PI": np.pi}))
     angle_end = float(eval(settings['ANGLE_END'], {"PI": np.pi}))
 
+    D = int(settings['D'])
+
+
     log_info(
-        f"Angle start: {angle_start} radians, Angle end: {angle_end} radians, Angle num: {angle_num}")
+        f"Angle start: {angle_start} radians, Angle end: {angle_end} radians, Angle num: {angle_num}, D: {D}")
 
     angles = np.linspace(angle_start, angle_end, angle_num)
     with ProcessPoolExecutor(max_workers=7) as executor:
-        futures = [executor.submit(process_angle, angle) for angle in angles]
+        futures = [executor.submit(process_angle, angle, D) for angle in angles]
         for f in tqdm(as_completed(futures), total=len(futures)):
             try:
                 f.result()

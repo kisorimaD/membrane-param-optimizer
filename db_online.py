@@ -29,7 +29,7 @@ def close_connection(conn):
 
 def create_table(conn):
     sql = f''' 
-    CREATE TABLE IF NOT EXISTS results_raw_{settings['POTENTIAL_CHOICE']}_D (
+    CREATE TABLE IF NOT EXISTS results_raw_{settings['POTENTIAL_CHOICE']}_D_new (
         id INT AUTO_INCREMENT PRIMARY KEY,
         angle INT NOT NULL,
         D INT NOT NULL,
@@ -53,7 +53,7 @@ def create_table(conn):
 
 def insert_data(conn, data):
     sql = f''' 
-    INSERT INTO results_raw_{settings['POTENTIAL_CHOICE']}_D(angle, D, hcoapt, hcentral, billowing, collide_area, is_closed, created_by)
+    INSERT INTO results_raw_{settings['POTENTIAL_CHOICE']}_D_new(angle, D, hcoapt, hcentral, billowing, collide_area, is_closed, created_by)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     '''
     try:
@@ -68,7 +68,7 @@ def insert_data(conn, data):
             cur.close()
 
 def find_data(conn, angle, D) -> tuple:
-    sql = f''' SELECT * FROM results_raw_{settings['POTENTIAL_CHOICE']}_D WHERE angle = %s AND D = %s '''
+    sql = f''' SELECT * FROM results_raw_{settings['POTENTIAL_CHOICE']}_D_new WHERE angle = %s AND D = %s '''
     log_debug(f"Finding data for angle: {angle}, D: {D}")
     try:
         cur = conn.cursor(buffered=True)
