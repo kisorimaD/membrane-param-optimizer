@@ -103,6 +103,8 @@ def process_angle(angle, D: int):
             log_debug(f"Precalculated data found for angle: {angle} radians")
             return precalc_data
         else:
+            close_connection(conn_local)
+        
             generate_angle_mesh(angle, D, ozaki_template_name)
             log_debug(f"Running av_in_cilinder for angle: {angle} radians")
             output = run_av_in_cilinder(ozaki_template_name, angle)
@@ -129,6 +131,8 @@ def process_angle(angle, D: int):
                 'is_closed': is_closed,
                 'created_by': settings['USERNAME']
             }
+
+            conn_local = create_connection()
             insert_data(conn_local, data)
             return (angle, billowing, collide_area)
     finally:
