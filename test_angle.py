@@ -52,7 +52,7 @@ def run_av_in_cilinder(angle):
 def grep_lines(lines) -> tuple[float, float, float, float, bool]:
 
     hcoapt_str = lines[-10].split("Hcoapt =")[1].split(",")[0].strip()
-    hcentral_str = lines[-10].split("Hcentral =")[1].strip()
+    hcentral_str = lines[-10].split("Hcentral =")[1].split(",")[0].strip()
     is_closed_str = lines[-9].split("isClosed =")[1].strip()
     billowing_str = lines[-6].split("{")[1].split(",")[0].strip()
     collide_area_str = lines[-4].split("=")[1].split("(")[0].strip()
