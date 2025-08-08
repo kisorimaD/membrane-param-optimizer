@@ -147,7 +147,10 @@ def analyse():
         f"Angle start: {angle_start} radians, Angle end: {angle_end} radians, Angle num: {angle_num}, D: {D}")
 
     angles = np.linspace(angle_start, angle_end, angle_num)
-    with ProcessPoolExecutor(max_workers=7) as executor:
+
+    log_debug(f"WORKERS: {settings['WORKERS']}")
+
+    with ProcessPoolExecutor(max_workers=int(settings['WORKERS'])) as executor:
         futures = [executor.submit(process_angle, angle, D) for angle in angles]
         for f in tqdm(as_completed(futures), total=len(futures)):
             try:
